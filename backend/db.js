@@ -11,12 +11,13 @@ export const mysqlPool = mysql.createPool({
     user:     process.env.MYSQL_USER     || "root",
     password: process.env.MYSQL_PASSWORD || "rootpass",
     database: process.env.MYSQL_DATABASE || "gestor_tareas",
+    ssl: process.env.MYSQL_SSL === "true" ? { rejectUnauthorized: false } : undefined,
     waitForConnections: true,
     connectionLimit: 10
 });
 
 // --- Conexion MongoDB -------------------------------------------------
-const mongoUri = process.env.MONGO_URI || "mongodb+srv://wwwmiriamcamacho_db_user:vOJ58ffJOMV0msG7@cluster0.xa7jjme.mongodb.net/?appName=Cluster0";
+const mongoUri = process.env.MONGO_URI;
 const mongoClient = new MongoClient(mongoUri);
 let mongoDb = null;
 
