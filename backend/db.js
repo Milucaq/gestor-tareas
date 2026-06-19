@@ -16,7 +16,7 @@ export const mysqlPool = mysql.createPool({
 });
 
 // --- Conexion MongoDB -------------------------------------------------
-const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017";
+const mongoUri = process.env.MONGO_URI || "mongodb+srv://wwwmiriamcamacho_db_user:vOJ58ffJOMV0msG7@cluster0.xa7jjme.mongodb.net/?appName=Cluster0";
 const mongoClient = new MongoClient(mongoUri);
 let mongoDb = null;
 
