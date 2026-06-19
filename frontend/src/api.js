@@ -1,5 +1,5 @@
 // Cliente API: encapsula las llamadas al backend (operaciones CRUD)
-const BASE = "/api";
+const BASE = (import.meta.env.VITE_API_URL || "") + "/api";
 
 async function req(url, options = {}) {
   const res = await fetch(BASE + url, {
