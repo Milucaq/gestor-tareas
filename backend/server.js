@@ -13,6 +13,16 @@ app.use(express.json());
 // Health check
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
+// READ - listar usuarios (para asignar responsables)
+app.get("/api/usuarios", async (req, res) => {
+    try {
+        const [rows] = await mysqlPool.query(
+            "SELECT id, nombre, rol FROM usuarios ORDER BY nombre"
+        );
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // =====================================================================
 // CRUD PROYECTOS
 // =====================================================================
