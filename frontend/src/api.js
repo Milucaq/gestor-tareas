@@ -36,6 +36,9 @@ export const api = {
     req(`/proyectos/${id}`, {
       method: "DELETE",
     }),
+  
+  // Usuarios
+  listarUsuarios: () => req("/usuarios"),
 
   listarTareas: (proyectoId) =>
     req(`/tareas${proyectoId ? `?proyecto_id=${proyectoId}` : ""}`),
