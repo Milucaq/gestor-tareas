@@ -160,5 +160,16 @@ app.get("/api/historial/:tarea_id", async (req, res) => {
 });
 
 // =====================================================================
+// MIDDLEWARE DE MANEJO DE ERRORES GLOBAL
+// =====================================================================
+app.use((err, req, res, next) => {
+    console.error(err);
+
+    res.status(500).json({
+        error: err.message
+    });
+});
+
+// =====================================================================
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API escuchando en http://localhost:${PORT}`));
