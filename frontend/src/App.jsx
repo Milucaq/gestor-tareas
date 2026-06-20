@@ -31,45 +31,99 @@ export default function App() {
       .catch(err => {
         console.error(err);
         alert(err.message);
-      });
+      })
       .finally(() => setCargando(false));
   }, []);
 
   // Carga de tareas cuando cambia el proyecto seleccionado
   useEffect(() => {
-    if (proyectoSel) api.listarTareas(proyectoSel).then(setTareas).catch(() => {});
+    if (proyectoSel) {
+      api.listarTareas(proyectoSel)
+        .then(setTareas)
+        .catch(err => {
+          console.error(err);
+          alert(err.message);
+        });
+    }
   }, [proyectoSel]);
 
-  const recargarTareas = () => api.listarTareas(proyectoSel).then(setTareas);
+  const recargarTareas = () => {
+    if (proyectoSel) {
+      api.listarTareas(proyectoSel)
+        .then(setTareas)
+        .catch(err => {
+          console.error(err);
+          alert(err.message);
+        });
+    }
+  };
 
   // --- Acciones de proyectos ---
   const crearProyecto = async () => {
-    if (!nuevoProyecto.nombre.trim()) return;
-    await api.crearProyecto(nuevoProyecto);
-    setNuevoProyecto({ nombre: "", descripcion: "" });
-    const data = await api.listarProyectos();
-    setProyectos(data);
+    try {
+      if (!nuevoProyecto.nombre.trim()) return;
+
+      await api.crearProyecto(nuevoProyecto);
+
+      setNuevoProyecto({
+        nombre: "",
+        descripcion: "",
+      });
+
+      const data = await api.listarProyectos();
+      setProyectos(data);
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   // --- Acciones de tareas ---
   const crearTarea = async () => {
-    if (!nuevaTarea.titulo.trim() || !proyectoSel) return;
-    await api.crearTarea({ ...nuevaTarea, proyecto_id: proyectoSel });
-    setNuevaTarea({ titulo: "", descripcion: "", prioridad: "media" });
-    recargarTareas();
+    try {
+      if (!nuevaTarea.titulo.trim() || !proyectoSel) return;
+
+      await api.crearTarea({ ...nuevaTarea, proyecto_id: proyectoSel });
+
+      setNuevaTarea({
+        titulo: "",
+        descripcion: "",
+        prioridad: "media",
+      });
+
+      recargarTareas();
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   const moverTarea = async (tarea, direccion) => {
-    const idx = ORDEN_ESTADOS.indexOf(tarea.estado);
-    const nuevo = ORDEN_ESTADOS[idx + direccion];
-    if (!nuevo) return;
-    await api.editarTarea(tarea.id, { ...tarea, estado: nuevo });
-    recargarTareas();
+    try {
+      const idx = ORDEN_ESTADOS.indexOf(tarea.estado);
+      const nuevo = ORDEN_ESTADOS[idx + direccion];
+      if (!nuevo) return;
+
+      await api.editarTarea(tarea.id, { ...tarea, estado: nuevo });
+      recargarTareas();
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   const borrarTarea = async (id) => {
-    await api.borrarTarea(id);
-    recargarTareas();
+    try {
+      await api.borrarTarea(id);
+      recargarTareas();
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   if (cargando) return <div className="estado-vacio">Cargando…</div>;
