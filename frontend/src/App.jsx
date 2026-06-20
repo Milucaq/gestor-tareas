@@ -28,7 +28,10 @@ export default function App() {
         setProyectos(data);
         if (data.length) setProyectoSel(data[0].id);
       })
-      .catch(() => {})
+      .catch(err => {
+        console.error(err);
+        alert(err.message);
+      });
       .finally(() => setCargando(false));
   }, []);
 
