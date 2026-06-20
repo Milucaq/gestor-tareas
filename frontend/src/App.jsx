@@ -15,115 +15,60 @@ export default function App() {
   const [proyectos, setProyectos] = useState([]);
   const [proyectoSel, setProyectoSel] = useState(null);
   const [tareas, setTareas] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);                 
   const [cargando, setCargando] = useState(true);
 
-  // Formularios
   const [nuevoProyecto, setNuevoProyecto] = useState({ nombre: "", descripcion: "" });
-  const [nuevaTarea, setNuevaTarea] = useState({ titulo: "", descripcion: "", prioridad: "media" });
+  const [nuevaTarea, setNuevaTarea] = useState({ titulo: "", descripcion: "", prioridad: "media", responsable_id: "" }); // 👈 NUEVO (responsable_id)
 
-  // Carga inicial de proyectos
+  // Carga inicial de proyectos y usuarios
   useEffect(() => {
     api.listarProyectos()
       .then(data => {
         setProyectos(data);
         if (data.length) setProyectoSel(data[0].id);
       })
-      .catch(err => {
-        console.error(err);
-        alert(err.message);
-      })
+      .catch(() => {})
       .finally(() => setCargando(false));
+    api.listarUsuarios().then(setUsuarios).catch(() => {});      
   }, []);
 
-  // Carga de tareas cuando cambia el proyecto seleccionado
   useEffect(() => {
-    if (proyectoSel) {
-      api.listarTareas(proyectoSel)
-        .then(setTareas)
-        .catch(err => {
-          console.error(err);
-          alert(err.message);
-        });
-    }
+    if (proyectoSel) api.listarTareas(proyectoSel).then(setTareas).catch(() => {});
   }, [proyectoSel]);
 
-  const recargarTareas = () => {
-    if (proyectoSel) {
-      api.listarTareas(proyectoSel)
-        .then(setTareas)
-        .catch(err => {
-          console.error(err);
-          alert(err.message);
-        });
-    }
-  };
+  const recargarTareas = () => api.listarTareas(proyectoSel).then(setTareas);
 
-  // --- Acciones de proyectos ---
   const crearProyecto = async () => {
-    try {
-      if (!nuevoProyecto.nombre.trim()) return;
-
-      await api.crearProyecto(nuevoProyecto);
-
-      setNuevoProyecto({
-        nombre: "",
-        descripcion: "",
-      });
-
-      const data = await api.listarProyectos();
-      setProyectos(data);
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
+    if (!nuevoProyecto.nombre.trim()) return;
+    await api.crearProyecto(nuevoProyecto);
+    setNuevoProyecto({ nombre: "", descripcion: "" });
+    const data = await api.listarProyectos();
+    setProyectos(data);
   };
 
-  // --- Acciones de tareas ---
   const crearTarea = async () => {
-    try {
-      if (!nuevaTarea.titulo.trim() || !proyectoSel) return;
-
-      await api.crearTarea({ ...nuevaTarea, proyecto_id: proyectoSel });
-
-      setNuevaTarea({
-        titulo: "",
-        descripcion: "",
-        prioridad: "media",
-      });
-
-      recargarTareas();
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
+    if (!nuevaTarea.titulo.trim() || !proyectoSel) return;
+    await api.crearTarea({
+      ...nuevaTarea,
+      proyecto_id: proyectoSel,
+      responsable_id: nuevaTarea.responsable_id || null         
+    });
+    setNuevaTarea({ titulo: "", descripcion: "", prioridad: "media", responsable_id: "" }); 
+    recargarTareas();
   };
 
   const moverTarea = async (tarea, direccion) => {
-    try {
-      const idx = ORDEN_ESTADOS.indexOf(tarea.estado);
-      const nuevo = ORDEN_ESTADOS[idx + direccion];
-      if (!nuevo) return;
-
-      await api.editarTarea(tarea.id, { ...tarea, estado: nuevo });
-      recargarTareas();
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
+    const idx = ORDEN_ESTADOS.indexOf(tarea.estado);
+    const nuevo = ORDEN_ESTADOS[idx + direccion];
+    if (!nuevo) return;
+    await api.editarTarea(tarea.id, { ...tarea, estado: nuevo });
+    recargarTareas();
   };
 
   const borrarTarea = async (id) => {
-    try {
-      await api.borrarTarea(id);
-      recargarTareas();
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
+    await api.borrarTarea(id);
+    recargarTareas();
   };
 
   if (cargando) return <div className="estado-vacio">Cargando…</div>;
@@ -136,7 +81,6 @@ export default function App() {
       </header>
 
       <main className="contenedor">
-        {/* Panel lateral: proyectos y formularios */}
         <aside className="panel">
           <section className="bloque">
             <h2>Proyectos</h2>
@@ -190,11 +134,22 @@ export default function App() {
               <option value="media">Prioridad media</option>
               <option value="alta">Prioridad alta</option>
             </select>
+
+            {/* 👈 NUEVO: selector de responsable */}
+            <select
+              value={nuevaTarea.responsable_id}
+              onChange={e => setNuevaTarea({ ...nuevaTarea, responsable_id: e.target.value })}
+            >
+              <option value="">Sin responsable</option>
+              {usuarios.map(u => (
+                <option key={u.id} value={u.id}>{u.nombre}</option>
+              ))}
+            </select>
+
             <button onClick={crearTarea} disabled={!proyectoSel}>Agregar tarea</button>
           </section>
         </aside>
 
-        {/* Tablero Kanban */}
         <section className="tablero">
           {COLUMNAS.map(col => {
             const items = tareas.filter(t => t.estado === col.id);
